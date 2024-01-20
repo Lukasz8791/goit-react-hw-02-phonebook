@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import styles from './ContactForm.module.css';
 
-const ContactForm = ({ addContact }) => {
+const ContactForm = ({ addContact, contacts }) => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const [numberError, setNumberError] = useState('');
+  const [nameError, setNameError] = useState('');
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -14,9 +15,29 @@ const ContactForm = ({ addContact }) => {
       return;
     }
 
+    const existingContactWithNumber = contacts.find(
+      contact => contact.number === number
+    );
+    if (existingContactWithNumber) {
+      setNameError(
+        `This number is assigned to the contact ${existingContactWithNumber.name}`
+      );
+      return;
+    }
+
+    if (
+      contacts.some(
+        contact => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      setNameError('Contact with this name already exists');
+      return;
+    }
+
     addContact(name, number);
     setName('');
     setNumber('');
+    setNameError('');
     setNumberError('');
   };
 
@@ -28,12 +49,16 @@ const ContactForm = ({ addContact }) => {
           className={styles.input}
           type="text"
           name="name"
-          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+          pattern="^[^\d]+$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => {
+            setName(e.target.value);
+            setNameError('');
+          }}
         />
+        {nameError && <p className={styles['error-message']}>{nameError}</p>}
       </label>
       <label>
         Phone:
